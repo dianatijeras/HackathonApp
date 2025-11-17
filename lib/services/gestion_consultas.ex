@@ -2,6 +2,7 @@ Code.require_file("../domain/consulta.ex", __DIR__)
 Code.require_file("../adapters/persistencia_csv.ex", __DIR__)
 
 defmodule Services.GestionConsultas do
+
   alias Domain.Consulta
 
   @doc "Registra una nueva consulta enviada por un equipo a un mentor."
@@ -26,6 +27,33 @@ defmodule Services.GestionConsultas do
     Adapters.PersistenciaCSV.escribir_consultas(nuevas)
 
     {:ok, consulta}
+  end
+
+  @doc "Permite que el mentor responda una consulta."
+  def responder_consulta(id_consulta, respuesta) do
+    consultas = Adapters.PersistenciaCSV.leer_consultas()
+
+    case Enum.find(consultas, fn c -> c.id == id_consulta end) do
+      nil ->
+        {:error, "Consulta no encontrada"}
+
+      consulta ->
+        actualizada = %{consulta | respuesta: respuesta}
+
+        nuevas =
+          [actualizada |
+          Enum.reject(consultas, fn c -> c.id == id_consulta end)]
+
+        Adapters.PersistenciaCSV.escribir_consultas(nuevas)
+
+        # Registrar en proyecto como avance
+        Services.GestionProyectos.agregar_avance(
+          consulta.id_equipo,
+          "Retroalimentación del mentor #{consulta.id_mentor}: #{respuesta}"
+        )
+
+        {:ok, actualizada}
+    end
   end
 
 end
