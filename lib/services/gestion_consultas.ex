@@ -56,4 +56,12 @@ defmodule Services.GestionConsultas do
     end
   end
 
+  @doc """
+  lista todas las consultas asignadas a un mentor
+  """
+  def listar_por_mentor(id_mentor) do
+    Adapters.PersistenciaCSV.leer_consultas()
+    |> Enum.filter(fn c -> c.id_mentor == id_mentor end)
+  end
+
 end
