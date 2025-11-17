@@ -7,6 +7,7 @@ defmodule Services.GestionMentores do
   """
 
   alias Domain.Mentor
+  alias Adapters.PersistenciaCSV
 
   @doc """
   Registra un nuevo mentor en el sistema.
@@ -21,6 +22,13 @@ defmodule Services.GestionMentores do
       PersistenciaCSV.escribir_mentores([nuevo | mentores])
       {:ok, nuevo}
     end
+  end
+
+  @doc """
+  Devuelve todos los mentores registrados.
+  """
+  def listar_mentores do
+    PersistenciaCSV.leer_mentores()
   end
 
 end
