@@ -1,4 +1,6 @@
 Code.require_file("../domain/participante.ex", __DIR__)
+Code.require_file("../domain/mensaje.ex", __DIR__)
+
 
 defmodule Adapters.PersistenciaCSV do
   @moduledoc """
@@ -49,6 +51,56 @@ defmodule Adapters.PersistenciaCSV do
 
       {:error, _} ->
         []
+    end
+  end
+
+  # MENSAJES
+
+  alias Domain.Mensaje
+
+  @doc """
+  Escribe un mensaje en el archivo CSV de mensajes.
+  """
+  def escribir_mensaje(%Mensaje{} = msg) do
+    ensure_dir()
+
+    linea =
+      "#{msg.id},#{msg.equipo_id},#{msg.autor},#{msg.contenido},#{msg.timestamp}\n"
+
+    File.write!(path("mensajes"), linea, [:append])
+  end
+
+  @doc """
+  lee un mensaje en el archivo CSV de mensajes.
+  """
+  def leer_mensajes do
+    case File.read(path("mensajes")) do
+      {:ok, contenido} ->
+        contenido
+        |> String.split("\n", trim: true)
+        |> Enum.map(&parse_mensaje/1)
+
+      {:error, _} ->
+        []
+    end
+  end
+
+  @doc """
+  convierte una linea de texto del archivo csv de mensajes en una estructura de %Mensaje{}
+  """
+  defp parse_mensaje(linea) do
+    case String.split(linea, ",") do
+      [id, equipo_id, autor, contenido, timestamp] ->
+        %Mensaje{
+          id: id,
+          equipo_id: equipo_id,
+          autor: autor,
+          contenido: contenido,
+          timestamp: timestamp
+        }
+
+      _ ->
+        nil
     end
   end
 
