@@ -49,4 +49,15 @@ defmodule Services.GestionEquipos do
     end
   end
 
+  @doc """
+  Busca un equipo por su ID.
+  """
+  def buscar_equipo_por_id(id_equipo) do
+    equipos = Adapters.PersistenciaCSV.leer_equipos()
+
+    Enum.find(equipos, fn e ->
+      e.id == id_equipo
+    end)
+  end
+
 end
