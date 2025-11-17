@@ -2,7 +2,8 @@ Code.require_file("../domain/participante.ex", __DIR__)
 Code.require_file("../domain/equipo.ex", __DIR__)
 Code.require_file("../domain/mentor.ex", __DIR__)
 Code.require_file("../domain/mensaje.ex", __DIR__)
-
+Code.require_file("../domain/proyecto.ex", __DIR__)
+Code.require_file("../domain/consulta.ex", __DIR__)
 
 
 defmodule Adapters.PersistenciaCSV do
@@ -182,6 +183,107 @@ defmodule Adapters.PersistenciaCSV do
           case String.split(linea, ",") do
             ["ID", "Nombre", "Especialidad", "correo", "contrasenia"] -> nil
             [id, nombre, especialidad, correo, contrasenia] -> %Mentor{id: id, nombre: nombre, especialidad: especialidad, correo: correo, contrasenia: contrasenia}
+            _ -> nil
+          end
+        end)
+        |> Enum.filter(& &1)
+
+      {:error, _} ->
+        []
+    end
+  end
+
+  @doc """
+  escribe la lista de proyectos en un archivo CSV
+  """
+  def escribir_proyectos(lista) do
+    ensure_dir()
+    headers = "ID,ID_Equipo,Titulo,Descripcion,Categoria,Estado,Avances\n"
+
+    contenido =
+      Enum.map(lista, fn %Proyecto{
+                            id: id,
+                            id_equipo: id_equipo,
+                            titulo: titulo,
+                            descripcion: descripcion,
+                            categoria: categoria,
+                            estado: estado,
+                            avances: avances
+                          } ->
+        "#{id},#{id_equipo},#{titulo},#{descripcion},#{categoria},#{estado},#{Enum.join(avances, ";")}\n"
+      end)
+      |> Enum.join()
+
+    File.write(path("proyectos"), headers <> contenido)
+  end
+
+  @doc """
+  lee la lista de proyectos del archivo CSV
+  """
+  def leer_proyectos do
+    case File.read(path("proyectos")) do
+      {:ok, contenido} ->
+        String.split(contenido, "\n", trim: true)
+        |> Enum.map(fn linea ->
+          case String.split(linea, ",") do
+            ["ID", "ID_Equipo", "Titulo", "Descripcion", "Categoria", "Estado", "Avances"] -> nil
+            [id, id_equipo, titulo, descripcion, categoria, estado, avances_str] ->
+              avances = if avances_str == "", do: [], else: String.split(avances_str, ";")
+              %Proyecto{
+                id: id,
+                id_equipo: id_equipo,
+                titulo: titulo,
+                descripcion: descripcion,
+                categoria: categoria,
+                estado: String.to_atom(estado),
+                avances: avances
+              }
+
+            _ -> nil
+          end
+        end)
+        |> Enum.filter(& &1)
+
+      {:error, _} ->
+        []
+    end
+  end
+
+  @doc """
+  escribe la lista de consultas en un archivo CSV
+  """
+  def escribir_consultas(lista) do
+    ensure_dir()
+    headers = "ID,ID_Equipo,ID_Mentor,Mensaje,Respuesta\n"
+
+    contenido =
+      Enum.map(lista, fn %Consulta{id: id, id_equipo: id_equipo, id_mentor: id_mentor, mensaje: mensaje, respuesta: respuesta} ->
+        "#{id},#{id_equipo},#{id_mentor},#{mensaje},#{respuesta}\n"
+      end)
+      |> Enum.join()
+
+    File.write(path("consultas"), headers <> contenido)
+  end
+
+  @doc """
+  lee la lista de consultas del archivo CSV
+  """
+  def leer_consultas do
+    case File.read(path("consultas")) do
+      {:ok, contenido} ->
+        String.split(contenido, "\n", trim: true)
+        |> Enum.map(fn linea ->
+          case String.split(linea, ",") do
+            ["ID", "ID_Equipo", "ID_Mentor", "Mensaje", "Respuesta"] -> nil
+            [id, id_equipo, id_mentor, mensaje, respuesta] ->
+              %Consulta{
+                id: id,
+                id_equipo: id_equipo,
+                id_mentor: id_mentor,
+                mensaje: mensaje,
+                respuesta: if(respuesta == "", do: nil, else: respuesta)
+              }
+
             _ -> nil
           end
         end)
