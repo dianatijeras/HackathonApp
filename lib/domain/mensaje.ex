@@ -4,11 +4,11 @@ defmodule Domain.Mensaje do
   """
 
   defstruct [
-    :id,          # cadena única (puede ser timestamp ó secuencia)
-    :equipo_id,   # a qué equipo pertenece
-    :autor,       # nombre o id del participante
-    :contenido,   # texto del mensaje
-    :timestamp    # fecha/hora en string
+    :id,
+    :equipo_id,
+    :autor,
+    :contenido,
+    :timestamp    
   ]
 
   @type t :: %__MODULE__{

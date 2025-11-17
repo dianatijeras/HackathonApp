@@ -31,4 +31,35 @@ defmodule Services.GestionParticipantes do
     PersistenciaCSV.leer_participantes()
   end
 
+  @doc """
+  Busca un usuario por su ID.
+  """
+  def buscar_usuario(id) do
+    listar_participantes()
+    |> Enum.find(fn u -> u.id == id end)
+  end
+
+  @doc """
+  Busca un usuario por su ID en la lista de usuarios registrados.
+  """
+  def buscar_usuario_por_id(id) do
+    lista = Process.get(:usuarios, [])
+    Enum.find(lista, fn u -> u.id == id end)
+  end
+
+  @doc """
+  Autentica a un usuario por correo y contraseña.
+  """
+  def autenticar_participante(correo, contrasenia) do
+    participantes = PersistenciaCSV.leer_participantes()
+
+    case Enum.find(participantes, fn p ->
+      String.trim(p.correo) == String.trim(correo) and
+      String.trim(p.contrasenia) == String.trim(contrasenia)
+    end) do
+      nil -> {:error, "Credenciales incorrectas"}
+      participante -> {:ok, participante}
+    end
+  end
+
 end
