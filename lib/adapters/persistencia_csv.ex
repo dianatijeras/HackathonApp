@@ -1,5 +1,7 @@
 Code.require_file("../domain/participante.ex", __DIR__)
 Code.require_file("../domain/mensaje.ex", __DIR__)
+Code.require_file("../domain/equipo.ex", __DIR__)
+
 
 
 defmodule Adapters.PersistenciaCSV do
@@ -101,6 +103,50 @@ defmodule Adapters.PersistenciaCSV do
 
       _ ->
         nil
+    end
+  end
+
+
+  @doc """
+    escribe la lista de participantes en un archivo CSV
+  """
+  def escribir_equipos(lista) do
+    ensure_dir()
+    headers = "ID,Nombre,Tema,Integrantes\n"
+
+    contenido =
+      Enum.map(lista, fn %Equipo{id: id, nombre: nombre, tema: tema, integrantes: integrantes} ->
+        integrantes_str = Enum.join(integrantes, ";")
+        "#{id},#{nombre},#{tema},#{integrantes_str}\n"
+      end)
+      |> Enum.join()
+
+    File.write(path("equipos"), headers <> contenido)
+  end
+
+  @doc """
+    Lee la lista de participantes del archivo CSV
+  """
+  def leer_equipos do
+    case File.read(path("equipos")) do
+      {:ok, contenido} ->
+        String.split(contenido, "\n", trim: true)
+        |> Enum.map(fn linea ->
+          case String.split(linea, ",") do
+            ["ID", "Nombre", "Tema", "Integrantes"] -> nil
+            [id, nombre, tema, integrantes_str] ->
+              integrantes =
+                if integrantes_str == "", do: [], else: String.split(integrantes_str, ";")
+
+              %Equipo{id: id, nombre: nombre, tema: tema, integrantes: integrantes}
+
+            _ -> nil
+          end
+        end)
+        |> Enum.filter(& &1)
+
+      {:error, _} ->
+        []
     end
   end
 
