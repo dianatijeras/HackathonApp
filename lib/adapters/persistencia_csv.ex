@@ -1,6 +1,7 @@
 Code.require_file("../domain/participante.ex", __DIR__)
-Code.require_file("../domain/mensaje.ex", __DIR__)
 Code.require_file("../domain/equipo.ex", __DIR__)
+Code.require_file("../domain/mentor.ex", __DIR__)
+Code.require_file("../domain/mensaje.ex", __DIR__)
 
 
 
@@ -106,6 +107,7 @@ defmodule Adapters.PersistenciaCSV do
     end
   end
 
+  # EQUIPOS
 
   @doc """
     escribe la lista de participantes en un archivo CSV
@@ -140,6 +142,46 @@ defmodule Adapters.PersistenciaCSV do
 
               %Equipo{id: id, nombre: nombre, tema: tema, integrantes: integrantes}
 
+            _ -> nil
+          end
+        end)
+        |> Enum.filter(& &1)
+
+      {:error, _} ->
+        []
+    end
+  end
+
+
+  # MENTORES
+
+  @doc """
+    escribe la lista de mentores en un archivo CSV
+  """
+  def escribir_mentores(lista) do
+    ensure_dir()
+    headers = "ID,Nombre,Especialidad,correo,contraseña\n"
+
+    contenido =
+      Enum.map(lista, fn %Mentor{id: id, nombre: nombre, especialidad: especialidad, correo: correo, contrasenia: contrasenia} ->
+        "#{id},#{nombre},#{especialidad}, #{correo}, #{contrasenia}\n"
+      end)
+      |> Enum.join()
+
+    File.write(path("mentores"), headers <> contenido)
+  end
+
+  @doc """
+    Lee la lista de mentores del archivo CSV
+  """
+  def leer_mentores do
+    case File.read(path("mentores")) do
+      {:ok, contenido} ->
+        String.split(contenido, "\n", trim: true)
+        |> Enum.map(fn linea ->
+          case String.split(linea, ",") do
+            ["ID", "Nombre", "Especialidad", "correo", "contrasenia"] -> nil
+            [id, nombre, especialidad, correo, contrasenia] -> %Mentor{id: id, nombre: nombre, especialidad: especialidad, correo: correo, contrasenia: contrasenia}
             _ -> nil
           end
         end)
