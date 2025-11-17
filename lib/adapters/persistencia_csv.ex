@@ -193,6 +193,8 @@ defmodule Adapters.PersistenciaCSV do
     end
   end
 
+  # PROYECTOS
+
   @doc """
   escribe la lista de proyectos en un archivo CSV
   """
@@ -248,6 +250,8 @@ defmodule Adapters.PersistenciaCSV do
         []
     end
   end
+
+  # CONSULTAS
 
   @doc """
   escribe la lista de consultas en un archivo CSV
