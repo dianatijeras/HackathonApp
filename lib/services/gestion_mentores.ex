@@ -31,4 +31,19 @@ defmodule Services.GestionMentores do
     PersistenciaCSV.leer_mentores()
   end
 
+  @doc """
+  Autentica a los mentores registrados
+  """
+  def autenticar_mentores(correo, contrasenia) do
+    mentores = PersistenciaCSV.leer_mentores()
+
+    case Enum.find(mentores, fn m ->
+      String.trim(m.correo) == String.trim(correo) and
+      String.trim(m.contrasenia) == String.trim(contrasenia)
+    end) do
+      nil -> {:error, "Credenciales incorrectas"}
+      mentor -> {:ok, mentor}
+    end
+  end
+
 end
