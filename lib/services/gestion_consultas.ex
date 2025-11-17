@@ -64,4 +64,10 @@ defmodule Services.GestionConsultas do
     |> Enum.filter(fn c -> c.id_mentor == id_mentor end)
   end
 
+  @doc "Lista todas las consultas hechas por un equipo."
+  def listar_por_equipo(id_equipo) do
+    Adapters.PersistenciaCSV.leer_consultas()
+    |> Enum.filter(fn c -> c.id_equipo == id_equipo end)
+  end
+
 end
