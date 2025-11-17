@@ -50,4 +50,20 @@ defmodule Services.GestionProyectos do
     end
   end
 
+  @doc "Filtra proyectos por categoría"
+  def buscar_por_categoria(categoria) do
+    proyectos = PersistenciaCSV.leer_proyectos()
+
+    Enum.filter(proyectos, fn p ->
+      String.downcase(p.categoria) == String.downcase(categoria)
+    end)
+  end
+
+
+  @doc "Filtra proyectos por estado"
+  def buscar_por_estado(estado) do
+    lista = PersistenciaCSV.leer_proyectos()
+    Enum.filter(lista, fn p -> p.estado == estado end)
+  end
+
 end
