@@ -1,13 +1,27 @@
+Code.require_file("../lib/adapters/chat_distribuido/cliente_chat.ex", __DIR__)
+Code.require_file("../lib/adapters/chat_distribuido/servidor_chat.ex", __DIR__)
+
+#Módulos del dominio
+Code.require_file("../lib/domain/participante.ex", __DIR__)
+Code.require_file("../lib/domain/equipo.ex", __DIR__)
+Code.require_file("../lib/domain/proyecto.ex", __DIR__)
+Code.require_file("../lib/domain/mentor.ex", __DIR__)
+
+#Módulos de servicios
+Code.require_file("../lib/services/gestion_participantes.ex", __DIR__)
+Code.require_file("../lib/services/gestion_equipos.ex", __DIR__)
+Code.require_file("../lib/services/gestion_proyectos.ex", __DIR__)
+Code.require_file("../lib/services/gestion_mentores.ex", __DIR__)
+Code.require_file("../lib/services/gestion_consultas.ex", __DIR__)
+
 defmodule Main do
   # Importar servicios
   alias Services.{GestionParticipantes, GestionEquipos, GestionProyectos, GestionMentores, GestionConsultas}
 
-  # ---------------------------
   # MENÚ PRINCIPAL
-  # ---------------------------
   def iniciar do
 
-    # ===== SERVIDOR DE CHAT DISTRIBUIDO =====
+    # SERVIDOR DE CHAT DISTRIBUIDO
     # Se inicia una sola vez en segundo plano
     spawn(fn ->
       try do
@@ -731,4 +745,17 @@ defmodule Main do
         IO.puts("Comando no reconocido: #{comando}")
     end
   end
+
+  #UTILIDAD
+  defp continuar(next_menu) do
+    IO.gets("\nPresione ENTER para continuar...")
+    IO.puts("\n")
+    next_menu.()
+  end
+
+  defp limpiar_pantalla do
+    IO.puts(String.duplicate("\n", 50))
+  end
 end
+
+Main.iniciar()
