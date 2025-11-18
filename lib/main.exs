@@ -235,6 +235,28 @@ defmodule Main do
     continuar(&menu_participante/0)
   end
 
+  defp enviar_consulta do
+    id_equipo = IO.gets("ID del equipo: ") |> String.trim()
+    id_mentor = IO.gets("ID del mentor: ") |> String.trim()
+    mensaje = IO.gets("Mensaje o consulta: ") |> String.trim()
+
+    {:ok, consulta} = GestionConsultas.registrar_consulta(id_equipo, id_mentor, mensaje)
+    IO.puts("Consulta registrada con ID #{consulta.id}")
+    continuar(&menu_participante/0)
+  end
+
+  defp mostrar_proyectos(proyectos) do
+    if proyectos == [] do
+      IO.puts("No se encontraron proyectos.")
+    else
+      Enum.each(proyectos, fn p ->
+        IO.puts("ID: #{p.id} | Título: #{p.titulo} | Estado: #{p.estado} | Categoría: #{p.categoria}")
+      end)
+    end
+  end
+
+  
+
   @doc """
   funcion que registra un mentor
   """
