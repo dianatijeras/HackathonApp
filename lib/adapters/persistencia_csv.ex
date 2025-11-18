@@ -90,9 +90,9 @@ defmodule Adapters.PersistenciaCSV do
     end
   end
 
-  @doc """
-  convierte una linea de texto del archivo csv de mensajes en una estructura de %Mensaje{}
-  """
+
+  #convierte una linea de texto del archivo csv de mensajes en una estructura de %Mensaje{}
+
   defp parse_mensaje(linea) do
     case String.split(linea, ",") do
       [id, equipo_id, autor, contenido, timestamp] ->
