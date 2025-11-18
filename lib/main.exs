@@ -578,6 +578,37 @@ defmodule Main do
     end
   end
 
+  defp listar_mentores do
+    mentores = GestionMentores.listar_mentores()
+
+    if mentores == [] do
+      IO.puts("No hay mentores registrados.")
+    else
+      Enum.each(mentores, fn m ->
+        IO.puts("ID: #{m.id} | Nombre: #{m.nombre} | Especialidad: #{m.especialidad}")
+      end)
+    end
+    continuar(&menu_mentor/0)
+  end
+
+  defp ver_consultas_recibidas do
+    id_mentor = IO.gets("Ingrese su ID de mentor: ") |> String.trim()
+    consultas = GestionConsultas.listar_por_mentor(id_mentor)
+
+    if consultas == [] do
+      IO.puts("No hay consultas asignadas a este mentor.")
+    else
+      Enum.each(consultas, fn c ->
+        IO.puts("""
+        [#{c.id}] De equipo #{c.id_equipo}:
+        Mensaje: #{c.mensaje}
+        Respuesta: #{c.respuesta || "Pendiente"}
+        """)
+      end)
+    end
+    continuar(&menu_mentor/0)
+  end
+
   @doc """
   funcion para entrar al modo comandos del sistema
   """
