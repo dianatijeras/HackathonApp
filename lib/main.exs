@@ -78,4 +78,44 @@ defmodule Main do
         iniciar()
     end
   end
+
+  @doc """
+  funcion que registra un mentor
+  """
+  defp registrar_mentor do
+    id = IO.gets("ID del mentor: ") |> String.trim()
+    nombre = IO.gets("Nombre: ") |> String.trim()
+    especialidad = IO.gets("Especialidad del mentor: ") |> String.trim()
+    correo = IO.gets("Correo: ") |> String.trim()
+    contrasenia = IO.gets("Contraseña: ") |> String.trim()
+
+    case GestionMentores.registrar_mentor(id, nombre, especialidad, correo, contrasenia) do
+      {:ok, m} ->
+        IO.puts("Mentor registrado correctamente: #{m.nombre}")
+      {:error, msg} ->
+        IO.puts("Error: #{msg}")
+    end
+
+    limpiar_pantalla()
+    continuar(&menu_mentor/0)
+  end
+
+  @doc """
+  funcion que autentica el mentor para iniciar sesion
+  """
+  defp login_mentor do
+    correo = IO.gets("Correo: ") |> String.trim()
+    contrasena = IO.gets("Contraseña: ") |> String.trim()
+
+    case GestionMentores.autenticar_mentores(correo, contrasena) do
+      {:ok, mentor} ->
+        IO.puts("Bienvenido, #{mentor.nombre}!")
+        limpiar_pantalla()
+        menu_mentor()
+
+      {:error, msg} ->
+        IO.puts("Error: #{msg}")
+        iniciar()
+    end
+  end
 end
