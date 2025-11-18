@@ -255,7 +255,267 @@ defmodule Main do
     end
   end
 
-  
+  defp abrir_chat_equipo do
+    id_equipo = IO.gets("Ingrese el ID del equipo para abrir el chat: ") |> String.trim()
+    nombre_usuario = IO.gets("Ingrese su nombre de usuario para el chat: ") |> String.trim()
+
+    case Services.GestionEquipos.buscar_equipo_por_id(id_equipo) do
+      nil ->
+        IO.puts("No existe un equipo con ese ID.")
+        continuar(&menu_participante/0)
+
+      equipo ->
+        IO.puts("Abriendo chat del equipo #{equipo.nombre}...")
+
+        nodo_local = pedir_nombre_nodo_local()
+        nodo_servidor = pedir_nombre_nodo_servidor()
+
+        case arrancar_y_conectar(nodo_local, nodo_servidor) do
+          {:ok, nodo_servidor_atom} ->
+
+            listener_pid = spawn(fn -> recibir_mensajes_loop() end)
+
+            send({:servidor_mensajeria, nodo_servidor_atom}, {:conectar, listener_pid, {:equipo, id_equipo}})
+
+            IO.puts("""
+            Conectado al chat del equipo #{equipo.nombre} en #{nodo_servidor_atom}.
+            Escribe tus mensajes y presiona ENTER.
+            Escribe /salir para abandonar el chat.
+            """)
+
+            enviar_bucle = fn enviar_bucle ->
+              mensaje =
+                IO.gets("[#{nombre_usuario}] > ")
+                |> case do
+                  nil -> ""
+                  s -> String.trim(s)
+                end
+
+              cond do
+                mensaje == "/salir" ->
+                  send({:servidor_mensajeria, nodo_servidor_atom}, {:desconectar, listener_pid})
+                  send(listener_pid, :salir)
+                  IO.puts("Saliendo del chat del equipo #{equipo.nombre}...\n")
+
+                mensaje == "" ->
+                  enviar_bucle.(enviar_bucle)
+
+                true ->
+                  send({:servidor_mensajeria, nodo_servidor_atom}, {:mensaje, listener_pid, {:equipo, id_equipo}, mensaje})
+                  enviar_bucle.(enviar_bucle)
+              end
+            end
+
+            enviar_bucle.(enviar_bucle)
+            continuar(&menu_participante/0)
+
+          {:error, :no_conectado} ->
+            IO.puts("No se pudo conectar con el servidor. Verifica la red y la dirección.")
+            continuar(&menu_participante/0)
+        end
+    end
+  end
+
+  #implementacion: comunicacion en tiempo real
+
+  defp pedir_nombre_nodo_local do
+    IO.gets("Ingrese el nombre de su nodo (ej: cliente1@192.168.0.12): ") |> String.trim()
+  end
+
+  defp pedir_nombre_nodo_servidor do
+    IO.gets("Ingrese el nombre del nodo servidor (ej: servidor@192.168.0.5): ") |> String.trim()
+  end
+
+  defp arrancar_y_conectar(nodo_local_str, nodo_servidor_str) do
+    nodo_local = String.to_atom(nodo_local_str)
+    nodo_servidor = String.to_atom(nodo_servidor_str)
+
+    case Node.start(nodo_local) do
+      {:ok, _} -> :ok
+      {:error, {:already_started, _}} -> :ok
+      _ -> :ok
+    end
+
+    Node.set_cookie(:my_cookie)
+
+    case Node.connect(nodo_servidor) do
+      true -> {:ok, nodo_servidor}
+      false -> {:error, :no_conectado}
+    end
+  end
+
+  # 12
+  defp entrar_canal_general do
+    nodo_local = pedir_nombre_nodo_local()
+    nodo_servidor = pedir_nombre_nodo_servidor()
+
+    case arrancar_y_conectar(nodo_local, nodo_servidor) do
+      {:ok, nodo_servidor_atom} ->
+
+        listener_pid = spawn(fn -> recibir_mensajes_loop() end)
+
+        send({:servidor_mensajeria, nodo_servidor_atom}, {:conectar, listener_pid, :general})
+
+        IO.puts("""
+        Conectado al CANAL GENERAL en #{nodo_servidor_atom}.
+        Escribe tus mensajes y presiona ENTER para enviarlos.
+        Escribe /salir para abandonar el chat.
+        """)
+
+        enviar_bucle = fn enviar_bucle ->
+          mensaje =
+            IO.gets("[general] > ")
+            |> case do
+              nil -> ""
+              s -> String.trim(s)
+            end
+
+          cond do
+            mensaje == "/salir" ->
+              send({:servidor_mensajeria, nodo_servidor_atom}, {:desconectar, listener_pid})
+              send(listener_pid, :salir)
+              IO.puts("Saliendo del canal general...\n")
+
+            mensaje == "" ->
+              enviar_bucle.(enviar_bucle)
+
+            true ->
+
+              send({:servidor_mensajeria, nodo_servidor_atom}, {:mensaje, listener_pid, :general, mensaje})
+              enviar_bucle.(enviar_bucle)
+          end
+        end
+
+        enviar_bucle.(enviar_bucle)
+        continuar(&menu_participante/0)
+
+      {:error, :no_conectado} ->
+        IO.puts("No se pudo conectar con el servidor. Verifica la red y la dirección.")
+        continuar(&menu_participante/0)
+    end
+  end
+
+  defp recibir_mensajes_loop do
+    receive do
+      {:nuevo_mensaje, :general, _pid_remoto, contenido} ->
+        IO.write("\r\n[GENERAL] #{contenido}\n[general] > ")
+        recibir_mensajes_loop()
+
+      {:nuevo_mensaje, {:sala, sala}, _pid_remoto, contenido} ->
+        IO.write("\r\n[SALA #{sala}] #{contenido}\n[sala #{sala}] > ")
+        recibir_mensajes_loop()
+
+      :salir ->
+        :ok
+
+      _other ->
+        recibir_mensajes_loop()
+    end
+  end
+
+
+  # 13
+  defp enviar_anuncio do
+    nodo_local = pedir_nombre_nodo_local()
+    nodo_servidor = pedir_nombre_nodo_servidor()
+
+    case arrancar_y_conectar(nodo_local, nodo_servidor) do
+      {:ok, nodo_servidor_atom} ->
+        anuncio = IO.gets("Escribe el anuncio para enviar al canal general: ") |> String.trim()
+        send({:servidor_mensajeria, nodo_servidor_atom},
+              {:mensaje, self(), :general, "[ANUNCIO] #{anuncio}"})
+        IO.puts("Anuncio enviado.")
+        continuar(&menu_participante/0)
+
+      {:error, :no_conectado} ->
+        IO.puts("No se pudo conectar con el servidor. Verifica la red y la dirección.")
+        continuar(&menu_participante/0)
+    end
+  end
+
+
+  # 14
+  defp crear_sala_tematica do
+    nodo_local = pedir_nombre_nodo_local()
+    nodo_servidor = pedir_nombre_nodo_servidor()
+
+    case arrancar_y_conectar(nodo_local, nodo_servidor) do
+      {:ok, nodo_servidor_atom} ->
+        nombre_sala = IO.gets("Nombre de la sala temática (ej: AI, Docker, Frontend): ") |> String.trim()
+        send({:servidor_mensajeria, nodo_servidor_atom}, {:crear_sala, self(), nombre_sala})
+        IO.puts("Solicitud enviada para crear la sala: #{nombre_sala}")
+        continuar(&menu_participante/0)
+
+      {:error, :no_conectado} ->
+        IO.puts("No se pudo conectar con el servidor. Verifica la red y la dirección.")
+        continuar(&menu_participante/0)
+    end
+  end
+
+  # 15
+  defp unirse_sala_tematica do
+    nodo_local = pedir_nombre_nodo_local()
+    nodo_servidor = pedir_nombre_nodo_servidor()
+
+    case arrancar_y_conectar(nodo_local, nodo_servidor) do
+      {:ok, nodo_servidor_atom} ->
+        nombre_sala = IO.gets("Nombre de la sala a unirse: ") |> String.trim()
+        send({:servidor_mensajeria, nodo_servidor_atom}, {:conectar, self(), {:sala, nombre_sala}})
+        IO.puts("Te has unido (solicitud enviada) a la sala #{nombre_sala}. Presiona ENTER para volver.")
+        IO.gets("")
+        continuar(&menu_participante/0)
+
+      {:error, :no_conectado} ->
+        IO.puts("No se pudo conectar con el servidor. Verifica la red y la dirección.")
+        continuar(&menu_participante/0)
+    end
+  end
+
+  # 16
+  defp chatear_sala_tematica do
+    nodo_local = pedir_nombre_nodo_local()
+    nodo_servidor = pedir_nombre_nodo_servidor()
+
+    case arrancar_y_conectar(nodo_local, nodo_servidor) do
+      {:ok, nodo_servidor_atom} ->
+        nombre_sala = IO.gets("Nombre de la sala para chatear: ") |> String.trim()
+
+        listener = spawn(fn -> recibir_mensajes_loop() end)
+
+        send({:servidor_mensajeria, nodo_servidor_atom}, {:conectar, listener, {:sala, nombre_sala}})
+
+        IO.puts("Entrando al chat de la sala #{nombre_sala}. Escribe /salir para terminar.\n")
+
+        enviar_mensajes_sala(nombre_sala, nodo_servidor_atom, listener)
+
+        continuar(&menu_participante/0)
+
+      {:error, :no_conectado} ->
+        IO.puts("No se pudo conectar con el servidor. Verifica la red y la dirección.")
+        continuar(&menu_participante/0)
+    end
+  end
+
+  defp enviar_mensajes_sala(nombre_sala, nodo_servidor_atom, listener) do
+    texto = IO.gets("[#{nombre_sala}] > ") |> String.trim()
+
+    cond do
+      texto == "/salir" ->
+        send({:servidor_mensajeria, nodo_servidor_atom}, {:desconectar, listener})
+        send(listener, :salir)
+        IO.puts("Saliendo del chat de #{nombre_sala}...")
+
+      texto == "" ->
+        enviar_mensajes_sala(nombre_sala, nodo_servidor_atom, listener)
+
+      true ->
+        # enviamos el listener como PID emisor
+        send({:servidor_mensajeria, nodo_servidor_atom}, {:mensaje, listener, {:sala, nombre_sala}, texto})
+        enviar_mensajes_sala(nombre_sala, nodo_servidor_atom, listener)
+    end
+  end
+
+  # Funciones mentor
 
   @doc """
   funcion que registra un mentor
