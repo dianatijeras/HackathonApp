@@ -14,15 +14,22 @@ Code.require_file("../lib/services/gestion_proyectos.ex", __DIR__)
 Code.require_file("../lib/services/gestion_mentores.ex", __DIR__)
 Code.require_file("../lib/services/gestion_consultas.ex", __DIR__)
 
+@doc """
+Punto de entrada principal de la aplicación.
+"""
 defmodule Main do
+
   # Importar servicios
   alias Services.{GestionParticipantes, GestionEquipos, GestionProyectos, GestionMentores, GestionConsultas}
 
   # MENÚ PRINCIPAL
+
+  @doc """
+  Inicia la aplicación y muestra el menú principal.
+  """
   def iniciar do
 
     # SERVIDOR DE CHAT DISTRIBUIDO
-    # Se inicia una sola vez en segundo plano
     spawn(fn ->
       try do
         Adapters.ChatDistribuido.ServidorChat.iniciar()
@@ -57,6 +64,9 @@ defmodule Main do
 
   # MENÚ DEL PARTICIPANTE
 
+  @doc """
+  Muestra el menú de opciones para el participante.
+  """
   defp menu_participante do
     IO.puts("""
     ===== MENÚ PARTICIPANTE =====
@@ -103,8 +113,11 @@ defmodule Main do
     end
   end
 
-  #MENU DEL MENTOR
-   defp menu_mentor do
+  # MENU DEL MENTOR
+  @doc """
+  Muestra el menú de opciones para el mentor.
+  """
+  defp menu_mentor do
     IO.puts("""
     ===== MENÚ MENTOR =====
     1. Listar mentores
@@ -163,6 +176,9 @@ defmodule Main do
     end
   end
 
+  @doc """
+  Crea un nuevo equipo con el ID, nombre y tema proporcionados.
+  """
   defp crear_equipo do
     id = IO.gets("ID del equipo: ") |> String.trim()
     nombre = IO.gets("Nombre del equipo: ") |> String.trim()
@@ -172,6 +188,9 @@ defmodule Main do
     continuar(&menu_participante/0)
   end
 
+  @doc """
+  Lista todos los equipos registrados.
+  """
   defp listar_equipos do
     equipos = GestionEquipos.listar_equipos()
 
@@ -186,6 +205,9 @@ defmodule Main do
     continuar(&menu_participante/0)
   end
 
+  @doc """
+  Agrega un integrante a un equipo existente.
+  """
   defp agregar_integrante do
     id_equipo = IO.gets("ID del equipo: ") |> String.trim()
     id_participante = IO.gets("ID del participante: ") |> String.trim()
@@ -198,6 +220,9 @@ defmodule Main do
     continuar(&menu_participante/0)
   end
 
+  @doc """
+  Registra un nuevo proyecto con los detalles proporcionados.
+  """
   defp registrar_proyecto do
     id = IO.gets("ID del proyecto: ") |> String.trim()
     id_equipo = IO.gets("ID del equipo: ") |> String.trim()
@@ -209,6 +234,9 @@ defmodule Main do
     continuar(&menu_participante/0)
   end
 
+  @doc """
+  Lista todos los proyectos registrados.
+  """
   defp listar_proyectos do
     proyectos = GestionProyectos.listar_proyectos()
 
@@ -228,6 +256,9 @@ defmodule Main do
     continuar(&menu_participante/0)
   end
 
+  @doc """
+  Lista todos los participantes registrados.
+  """
   defp listar_participantes do
     participantes = GestionParticipantes.listar_participantes()
 
@@ -245,6 +276,9 @@ defmodule Main do
     continuar(&menu_participante/0)
   end
 
+  @doc """
+  Agrega un nuevo avance a un proyecto existente.
+  """
   defp agregar_avance do
     id_proyecto = IO.gets("ID del proyecto: ") |> String.trim()
     texto = IO.gets("Nuevo avance: ") |> String.trim()
@@ -256,6 +290,9 @@ defmodule Main do
     continuar(&menu_participante/0)
   end
 
+  @doc """
+  Busca proyectos por categoría.
+  """
   defp buscar_por_categoria do
     categoria = IO.gets("Ingrese la categoría: ") |> String.trim()
     proyectos = GestionProyectos.buscar_por_categoria(categoria)
@@ -263,6 +300,9 @@ defmodule Main do
     continuar(&menu_participante/0)
   end
 
+  @doc """
+  Busca proyectos por estado.
+  """
   defp buscar_por_estado do
     estado = IO.gets("Ingrese el estado (en_desarrollo/finalizado): ") |> String.trim() |> String.to_atom()
     proyectos = GestionProyectos.buscar_por_estado(estado)
@@ -270,6 +310,9 @@ defmodule Main do
     continuar(&menu_participante/0)
   end
 
+  @doc """
+  Envía una consulta o mensaje de un equipo a un mentor.
+  """
   defp enviar_consulta do
     id_equipo = IO.gets("ID del equipo: ") |> String.trim()
     id_mentor = IO.gets("ID del mentor: ") |> String.trim()
@@ -280,6 +323,9 @@ defmodule Main do
     continuar(&menu_participante/0)
   end
 
+  @doc """
+  Muestra los proyectos proporcionados.
+  """
   defp mostrar_proyectos(proyectos) do
     if proyectos == [] do
       IO.puts("No se encontraron proyectos.")
@@ -290,6 +336,11 @@ defmodule Main do
     end
   end
 
+  # Comunicación entre procesos
+
+  @doc """
+  Abre un chat para un equipo específico.
+  """
   defp abrir_chat_equipo do
     id_equipo = IO.gets("Ingrese el ID del equipo para abrir el chat: ") |> String.trim()
     nombre_usuario = IO.gets("Ingrese su nombre de usuario para el chat: ") |> String.trim()
@@ -353,14 +404,23 @@ defmodule Main do
 
   #implementacion: comunicacion en tiempo real
 
+  @doc """
+  Pide el nombre del nodo local para la comunicación en tiempo real.
+  """
   defp pedir_nombre_nodo_local do
     IO.gets("Ingrese el nombre de su nodo (ej: cliente1@192.168.0.12): ") |> String.trim()
   end
 
+  @doc """
+  Pide el nombre del nodo servidor para la comunicación en tiempo real.
+  """
   defp pedir_nombre_nodo_servidor do
     IO.gets("Ingrese el nombre del nodo servidor (ej: servidor@192.168.0.5): ") |> String.trim()
   end
 
+  @doc """
+  Inicia el nodo local y se conecta al nodo servidor para la comunicación en tiempo real.
+  """
   defp arrancar_y_conectar(nodo_local_str, nodo_servidor_str) do
     nodo_local = String.to_atom(nodo_local_str)
     nodo_servidor = String.to_atom(nodo_servidor_str)
@@ -380,6 +440,10 @@ defmodule Main do
   end
 
   # 12
+
+  @doc """
+  Entra al canal general para comunicación en tiempo real.
+  """
   defp entrar_canal_general do
     nodo_local = pedir_nombre_nodo_local()
     nodo_servidor = pedir_nombre_nodo_servidor()
@@ -430,6 +494,9 @@ defmodule Main do
     end
   end
 
+  @doc """
+  Escucha y muestra los mensajes recibidos en tiempo real.
+  """
   defp recibir_mensajes_loop do
     receive do
       {:nuevo_mensaje, :general, _pid_remoto, contenido} ->
@@ -448,8 +515,9 @@ defmodule Main do
     end
   end
 
-
-  # 13
+  @doc """
+  Envía un anuncio al canal general.
+  """
   defp enviar_anuncio do
     nodo_local = pedir_nombre_nodo_local()
     nodo_servidor = pedir_nombre_nodo_servidor()
@@ -469,7 +537,9 @@ defmodule Main do
   end
 
 
-  # 14
+  @doc """
+  Crea una sala temática para discusión.
+  """
   defp crear_sala_tematica do
     nodo_local = pedir_nombre_nodo_local()
     nodo_servidor = pedir_nombre_nodo_servidor()
@@ -488,6 +558,9 @@ defmodule Main do
   end
 
   # 15
+  @doc """
+  Permite a un usuario unirse a una sala temática existente.
+  """
   defp unirse_sala_tematica do
     nodo_local = pedir_nombre_nodo_local()
     nodo_servidor = pedir_nombre_nodo_servidor()
@@ -507,6 +580,9 @@ defmodule Main do
   end
 
   # 16
+  @doc """
+  Permite a un usuario chatear en una sala temática.
+  """
   defp chatear_sala_tematica do
     nodo_local = pedir_nombre_nodo_local()
     nodo_servidor = pedir_nombre_nodo_servidor()
@@ -531,6 +607,9 @@ defmodule Main do
     end
   end
 
+  @doc """
+  Bucle para enviar mensajes en una sala temática.
+  """
   defp enviar_mensajes_sala(nombre_sala, nodo_servidor_atom, listener) do
     texto = IO.gets("[#{nombre_sala}] > ") |> String.trim()
 
@@ -544,7 +623,7 @@ defmodule Main do
         enviar_mensajes_sala(nombre_sala, nodo_servidor_atom, listener)
 
       true ->
-        # enviamos el listener como PID emisor
+
         send({:servidor_mensajeria, nodo_servidor_atom}, {:mensaje, listener, {:sala, nombre_sala}, texto})
         enviar_mensajes_sala(nombre_sala, nodo_servidor_atom, listener)
     end
@@ -592,6 +671,9 @@ defmodule Main do
     end
   end
 
+  @doc """
+  Lista todos los mentores registrados.
+  """
   defp listar_mentores do
     mentores = GestionMentores.listar_mentores()
 
@@ -605,6 +687,9 @@ defmodule Main do
     continuar(&menu_mentor/0)
   end
 
+  @doc """
+  Muestra las consultas recibidas por un mentor.
+  """
   defp ver_consultas_recibidas do
     id_mentor = IO.gets("Ingrese su ID de mentor: ") |> String.trim()
     consultas = GestionConsultas.listar_por_mentor(id_mentor)
@@ -623,6 +708,9 @@ defmodule Main do
     continuar(&menu_mentor/0)
   end
 
+  @doc """
+  Permite a un mentor responder una consulta específica.
+  """
   defp responder_consulta do
     id_consulta = IO.gets("ID de la consulta a responder: ") |> String.trim()
     respuesta = IO.gets("Respuesta del mentor: ") |> String.trim()
@@ -633,6 +721,8 @@ defmodule Main do
     end
     continuar(&menu_mentor/0)
   end
+
+  # MODO COMANDOS
 
   @doc """
   funcion para entrar al modo comandos del sistema
@@ -746,13 +836,20 @@ defmodule Main do
     end
   end
 
-  #UTILIDAD
+  # UTILIDAD
+
+  @doc """
+  Simula un bucle de chat simple para el modo comando.
+  """
   defp continuar(next_menu) do
     IO.gets("\nPresione ENTER para continuar...")
     IO.puts("\n")
     next_menu.()
   end
 
+  @doc """
+  Simula un bucle de chat simple para el modo comando.
+  """
   defp limpiar_pantalla do
     IO.puts(String.duplicate("\n", 50))
   end

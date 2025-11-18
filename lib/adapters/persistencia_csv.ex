@@ -18,6 +18,7 @@ defmodule Adapters.PersistenciaCSV do
 
 
   # UTILIDAD
+
   defp ensure_dir, do: File.mkdir_p!(@dir)
   defp path(nombre), do: Path.join(@dir, "#{nombre}.csv")
 
@@ -111,7 +112,7 @@ defmodule Adapters.PersistenciaCSV do
   # EQUIPOS
 
   @doc """
-    escribe la lista de participantes en un archivo CSV
+  escribe la lista de equipos en un archivo CSV
   """
   def escribir_equipos(lista) do
     ensure_dir()
@@ -128,7 +129,7 @@ defmodule Adapters.PersistenciaCSV do
   end
 
   @doc """
-    Lee la lista de participantes del archivo CSV
+  Lee la lista de equipos del archivo CSV
   """
   def leer_equipos do
     case File.read(path("equipos")) do
@@ -157,7 +158,7 @@ defmodule Adapters.PersistenciaCSV do
   # MENTORES
 
   @doc """
-    escribe la lista de mentores en un archivo CSV
+  Escribe la lista de mentores en un archivo CSV
   """
   def escribir_mentores(lista) do
     ensure_dir()
@@ -173,7 +174,7 @@ defmodule Adapters.PersistenciaCSV do
   end
 
   @doc """
-    Lee la lista de mentores del archivo CSV
+  Lee la lista de mentores del archivo CSV
   """
   def leer_mentores do
     case File.read(path("mentores")) do
