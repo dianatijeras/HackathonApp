@@ -89,6 +89,27 @@ defmodule Main do
     end
   end
 
+  #MENU DEL MENTOR
+   defp menu_mentor do
+    IO.puts("""
+    ===== MENÚ MENTOR =====
+    1. Listar mentores
+    2. Ver consultas recibidas
+    3. Responder consulta
+    0. Cerrar sesión
+    """)
+
+    opcion = IO.gets("Seleccione una opción: ") |> String.trim()
+
+    case opcion do
+      "1" -> listar_mentores()
+      "2" -> ver_consultas_recibidas()
+      "3" -> responder_consulta()
+      "0" -> iniciar()
+      _ -> IO.puts("Opción no válida\n"); menu_mentor()
+    end
+  end
+
   @doc """
   funcion para registrar un participante
   """
