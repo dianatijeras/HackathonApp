@@ -132,12 +132,102 @@ defmodule Main do
   end
 
   @doc """
-  Inicia un ciclo interactivo que permite al usuario ingresar comandos
+  funcion que inicia un ciclo interactivo que permite al usuario ingresar comandos
   de manera continua desde la terminal.
   """
   defp loop_comandos do
     input = IO.gets("> ") |> String.trim()
     ejecutar_comando(input)
     loop_comandos()
+  end
+
+  @doc """
+  funcion que ejecuta los diferentes comandos
+  """
+  defp ejecutar_comando(comando) do
+    cond do
+      comando == "/help" ->
+        IO.puts("""
+        ==== COMANDOS DISPONIBLES ====
+        /teams                → Listar equipos registrados
+        /project nombre       → Mostrar proyecto de un equipo
+        /join equipo          → Unirse a un equipo existente
+        /chat equipo          → Entrar al canal de chat del equipo
+        /exit                 → Salir del modo comando
+        """)
+
+      comando == "/teams" ->
+        equipos = Services.GestionEquipos.listar_equipos()
+        if equipos == [] do
+          IO.puts("No hay equipos registrados.")
+        else
+          Enum.each(equipos, fn e ->
+            IO.puts("• #{e.nombre} (ID: #{e.id}) — Integrantes: #{Enum.join(e.integrantes, ", ")}")
+          end)
+        end
+
+      comando == "/exit" ->
+        IO.puts("Saliendo del modo comando...\n")
+        iniciar()
+
+      String.starts_with?(comando, "/project") ->
+        case String.split(comando, " ", parts: 2) do
+          [_cmd, nombre_equipo] ->
+            proyectos = Services.GestionProyectos.listar_proyectos()
+
+            proyecto = Enum.find(proyectos, fn p ->
+              equipo = Services.GestionEquipos.buscar_equipo_por_id(p.id_equipo)
+              equipo && equipo.nombre == nombre_equipo
+            end)
+
+            if proyecto do
+              IO.puts("""
+              Proyecto del equipo #{nombre_equipo}:
+              Título: #{proyecto.titulo}
+              Descripción: #{proyecto.descripcion}
+              Categoría: #{proyecto.categoria}
+              Avances: #{Enum.join(proyecto.avances, "; ")}
+              """)
+            else
+              IO.puts("No se encontró proyecto para el equipo '#{nombre_equipo}'.")
+            end
+
+          _ ->
+            IO.puts("Uso correcto: /project nombre_equipo")
+        end
+
+      String.starts_with?(comando, "/join") ->
+        case String.split(comando, " ", parts: 2) do
+          [_cmd, nombre_equipo] ->
+            id_participante = IO.gets("Tu ID de participante: ") |> String.trim()
+            equipo = Services.GestionEquipos.buscar_por_nombre(nombre_equipo)
+
+            if equipo do
+              case Services.GestionEquipos.agregar_integrante(equipo.id, id_participante) do
+                {:ok, _} -> IO.puts("Te has unido al equipo #{nombre_equipo}.")
+                {:error, msg} -> IO.puts("Error: #{msg}")
+              end
+            else
+              IO.puts("No se encontró el equipo '#{nombre_equipo}'.")
+            end
+
+          _ ->
+            IO.puts("Uso correcto: /join nombre_equipo")
+        end
+
+      String.starts_with?(comando, "/chat") ->
+        case String.split(comando, " ", parts: 2) do
+          [_cmd, nombre_equipo] ->
+            IO.puts("Entrando al chat del equipo #{nombre_equipo} (simulación)...")
+            IO.puts("Escribe /salir para volver.\n")
+            chat_loop(nombre_equipo)
+
+          _ ->
+            IO.puts("Uso correcto: /chat nombre_equipo")
+        end
+
+      true ->
+        IO.puts("Comando no reconocido: #{comando}")
+    end
   end
 end
