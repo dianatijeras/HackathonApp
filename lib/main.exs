@@ -118,4 +118,26 @@ defmodule Main do
         iniciar()
     end
   end
+
+  @doc """
+  funcion para entrar al modo comandos del sistema
+  """
+  defp modo_comandos do
+    IO.puts("""
+    ==== MODO COMANDO ====
+    Escribe /help para ver los comandos disponibles.
+    """)
+
+    loop_comandos()
+  end
+
+  @doc """
+  Inicia un ciclo interactivo que permite al usuario ingresar comandos
+  de manera continua desde la terminal.
+  """
+  defp loop_comandos do
+    input = IO.gets("> ") |> String.trim()
+    ejecutar_comando(input)
+    loop_comandos()
+  end
 end
