@@ -39,4 +39,43 @@ defmodule Main do
       _ -> IO.puts("Opción no válida\n"); iniciar()
     end
   end
+
+  @doc """
+  funcion para registrar un participante
+  """
+  defp registrar_participante do
+    id = IO.gets("ID del participante: ") |> String.trim()
+    nombre = IO.gets("Nombre: ") |> String.trim()
+    correo = IO.gets("Correo: ") |> String.trim()
+    contrasenia = IO.gets("Contraseña: ") |> String.trim()
+
+    case GestionParticipantes.registrar_participante(id, nombre, correo, contrasenia) do
+      {:ok, p} ->
+        IO.puts("Participante registrado correctamente: #{p.nombre}")
+      {:error, msg} ->
+        IO.puts("Error: #{msg}")
+    end
+
+    continuar(&menu_participante/0)
+    limpiar_pantalla()
+  end
+
+  @doc """
+  funcion que autentica el participante para iniciar sesion
+  """
+  defp login_participante do
+    correo = IO.gets("Correo: ") |> String.trim()
+    contrasena = IO.gets("Contraseña: ") |> String.trim()
+
+    case GestionParticipantes.autenticar_participante(correo, contrasena) do
+      {:ok, participante} ->
+        limpiar_pantalla()
+        IO.puts("Bienvenido, #{participante.nombre}!")
+        menu_participante()
+
+      {:error, msg} ->
+        IO.puts("Error: #{msg}")
+        iniciar()
+    end
+  end
 end
