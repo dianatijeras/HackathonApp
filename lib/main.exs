@@ -210,6 +210,30 @@ defmodule Main do
     continuar(&menu_participante/0)
   end
 
+  defp agregar_avance do
+    id_proyecto = IO.gets("ID del proyecto: ") |> String.trim()
+    texto = IO.gets("Nuevo avance: ") |> String.trim()
+
+    case GestionProyectos.agregar_avance(id_proyecto, texto) do
+      {:ok, _} -> IO.puts("Avance agregado correctamente.")
+      {:error, msg} -> IO.puts("Error: #{msg}")
+    end
+    continuar(&menu_participante/0)
+  end
+
+  defp buscar_por_categoria do
+    categoria = IO.gets("Ingrese la categoría: ") |> String.trim()
+    proyectos = GestionProyectos.buscar_por_categoria(categoria)
+    mostrar_proyectos(proyectos)
+    continuar(&menu_participante/0)
+  end
+
+  defp buscar_por_estado do
+    estado = IO.gets("Ingrese el estado (en_desarrollo/finalizado): ") |> String.trim() |> String.to_atom()
+    proyectos = GestionProyectos.buscar_por_estado(estado)
+    mostrar_proyectos(proyectos)
+    continuar(&menu_participante/0)
+  end
 
   @doc """
   funcion que registra un mentor
