@@ -609,6 +609,17 @@ defmodule Main do
     continuar(&menu_mentor/0)
   end
 
+  defp responder_consulta do
+    id_consulta = IO.gets("ID de la consulta a responder: ") |> String.trim()
+    respuesta = IO.gets("Respuesta del mentor: ") |> String.trim()
+
+    case GestionConsultas.responder_consulta(id_consulta, respuesta) do
+      {:ok, _} -> IO.puts("Respuesta guardada correctamente.")
+      {:error, msg} -> IO.puts("Error: #{msg}")
+    end
+    continuar(&menu_mentor/0)
+  end
+
   @doc """
   funcion para entrar al modo comandos del sistema
   """
