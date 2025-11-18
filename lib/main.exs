@@ -78,10 +78,9 @@ defmodule Main do
     10. Enviar consulta a mentor
     11. Abrir chat del quipo
     12. Entrar al canal general
-    13. Enviar anuncio
-    14. Crear sala temática
-    15. Unirse a una sala
-    16. Chatear en una sala
+    13. Crear sala temática
+    14. Unirse a una sala
+    15. Chatear en una sala
     0. Cerrar sesión
     """)
 
@@ -100,10 +99,9 @@ defmodule Main do
       "10" -> enviar_consulta()
       "11" -> abrir_chat_equipo()
       "12" -> entrar_canal_general()
-      "13" -> enviar_anuncio()
-      "14" -> crear_sala_tematica()
-      "15" -> unirse_sala_tematica()
-      "16" -> chatear_sala_tematica()
+      "13" -> crear_sala_tematica()
+      "14" -> unirse_sala_tematica()
+      "15" -> chatear_sala_tematica()
       "0" -> iniciar()
       _ -> IO.puts("Opción no válida\n"); menu_participante()
     end
@@ -468,25 +466,6 @@ defmodule Main do
 
       _other ->
         recibir_mensajes_loop()
-    end
-  end
-
-  #Envía un anuncio al canal general.
-  defp enviar_anuncio do
-    nodo_local = pedir_nombre_nodo_local()
-    nodo_servidor = pedir_nombre_nodo_servidor()
-
-    case arrancar_y_conectar(nodo_local, nodo_servidor) do
-      {:ok, nodo_servidor_atom} ->
-        anuncio = IO.gets("Escribe el anuncio para enviar al canal general: ") |> String.trim()
-        send({:servidor_mensajeria, nodo_servidor_atom},
-              {:mensaje, self(), :general, "[ANUNCIO] #{anuncio}"})
-        IO.puts("Anuncio enviado.")
-        continuar(&menu_participante/0)
-
-      {:error, :no_conectado} ->
-        IO.puts("No se pudo conectar con el servidor. Verifica la red y la dirección.")
-        continuar(&menu_participante/0)
     end
   end
 
